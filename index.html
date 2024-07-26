@@ -1,0 +1,34 @@
+<!-- this will be the frontend part -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Google Drive Edits</title>
+  <style>
+    #updates {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="updates">
+    <h2>Live Edits</h2>
+    <ul id="updates-list"></ul>
+  </div>
+  <script>
+    const updatesList = document.getElementById('updates-list');
+
+    // make sure to replace 'your-app-name.herokuapp.com' with my actual Heroku app URL on the next step
+    const socket = new WebSocket('wss://your-app-name.herokuapp.com');
+
+    socket.onmessage = function(event) {
+      const update = JSON.parse(event.data);
+      const listItem = document.createElement('li');
+      listItem.textContent = `File: ${update.fileId} edited by ${update.user}`;
+      updatesList.appendChild(listItem);
+    };
+  </script>
+</body>
+</html>
