@@ -7,13 +7,14 @@ function App() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [spotifyData, setSpotifyData] = useState(null);
+  const [spotifyData, setSpotifyData] = useState([]);
+  const artistIds = ['1Xyo4u8uXC1ZmMpatF05PJ', '3m49WVMU4zCkaVEKb8kFW7']; // Add more artist IDs here [weekend, ilayraja]
 
   const handleOpenPicker = () => {
     setLoading(true);
     openPicker({
       clientId: "648055946887-4er5sea1ghchnroe19sf761l6dtmme4i.apps.googleusercontent.com",
-      developerKey: "",
+      developerKey: "", //MAKE SURE TO DELETE BEFORE COMMITTING
       viewId: "DOCS",
       showUploadView: true,
       showUploadFolders: true,
@@ -44,7 +45,7 @@ function App() {
         const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', null, {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Basic ' + btoa('YOUR_CLIENT_ID:YOUR_CLIENT_SECRET') //fill in here
+            'Authorization': 'Basic ' + btoa(':') //clientid:clientsecret
           },
           params: {
             grant_type: 'client_credentials'
@@ -53,13 +54,37 @@ function App() {
 
         const accessToken = tokenResponse.data.access_token;
 
-        const artistResponse = await axios.get('https://api.spotify.com/v1/artists/1Xyo4u8uXC1ZmMpatF05PJ', { //fix this
-          headers: {
-            'Authorization': 'Bearer ' + accessToken
-          }
-        });
+        const artistPromises = artistIds.map(id =>
+          axios.get(`https://api.spotify.com/v1/artists/${id}`, {
+            headers: {
+              'Authorization': 'Bearer ' + accessToken
+            }
+          })
+        );
 
-        setSpotifyData(artistResponse.data);
+        const topTracksPromises = artistIds.map(id =>
+          axios.get(`https://api.spotify.com/v1/artists/${id}/top-tracks`, {
+            headers: {
+              'Authorization': 'Bearer ' + accessToken
+            },
+            params: {
+              market: 'US'
+            }
+          })
+        );
+
+        const artistResults = await Promise.all(artistPromises.map(p => p.catch(e => e.response)));
+        const topTracksResults = await Promise.all(topTracksPromises.map(p => p.catch(e => e.response)));
+
+        const successfulArtistResults = artistResults.filter(result => result.status === 200);
+        const successfulTopTracksResults = topTracksResults.filter(result => result.status === 200);
+
+        const combinedResults = successfulArtistResults.map((result, index) => ({
+          ...result.data,
+          topTrack: successfulTopTracksResults[index].data.tracks[0]
+        }));
+
+        setSpotifyData(combinedResults);
       } catch (error) {
         console.error("Error fetching Spotify data: ", error);
         setError(error);
@@ -85,17 +110,29 @@ function App() {
           )}
         </div>
       )}
-      {spotifyData ? (
-        <div>
-          <h2>{spotifyData.name}</h2>
-          <img src={spotifyData.images[0].url} alt={spotifyData.name} />
-          <p>Followers: {spotifyData.followers.total}</p>
-          <p>Popularity: {spotifyData.popularity}</p>
-          <p>Genres: {spotifyData.genres.join(', ')}</p>
-        </div>
-      ) : (
-        error && <p>Error fetching Spotify data: {error.message}</p>
-      )}
+      <div>
+        {spotifyData.length > 0 ? (
+          spotifyData.map((artist) => (
+            <div key={artist.id} style={{ marginBottom: '20px' }}>
+              <h2>{artist.name}</h2>
+              <img src={artist.images[0]?.url} alt={artist.name} style={{ width: '200px', height: '200px' }} />
+              <p>Followers: {artist.followers.total}</p>
+              <p>Popularity: {artist.popularity}</p>
+              <p>Genres: {artist.genres.join(', ')}</p>
+              {artist.topTrack && (
+                <div>
+                  <p>Top Track: {artist.topTrack.name}</p>
+                  <button onClick={() => window.open(artist.topTrack.preview_url, '_blank')}>
+                    Listen to Top Track
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          error && <p>Error fetching Spotify data: {error.message}</p>
+        )}
+      </div>
     </div>
   );
 }
