@@ -1,77 +1,84 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
 import useDrivePicker from 'react-google-drive-picker';
 import axios from 'axios';
 
-const myFirstElement = <h1>Hello!</h1>;
-
 function App() {
-    const [openPicker, data, authResponse] = useDrivePicker();
-    const [files, setFiles] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  const [openPicker, data, authResponse] = useDrivePicker();
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    const handleOpenPicker = () => {
-        setLoading(true);
-        openPicker({
-            clientId: ",
-            developerKey: "",
-            viewId: "DOCS",
-            showUploadView: true,
-            showUploadFolders: true,
-            supportDrives: true,
-            multiselect: true
-        });
-    };
+  const [accessToken, setAccessToken] = useState('');
+  const [artistData, setArtistData] = useState({});
 
-    useEffect(() => {
-        if (data) {
-            setLoading(false);
-            setFiles(data.docs);
-        }
-    }, [data]);
+  const handleOpenPicker = () => {
+    setLoading(true);
+    openPicker({
+      clientId: "YOUR_CLIENT_ID", // Add
+      developerKey: "YOUR_DEVELOPER_KEY", // Add
+      viewId: "DOCS",
+      showUploadView: true,
+      showUploadFolders: true,
+      supportDrives: true,
+      multiselect: true
+    });
+  };
 
-    useEffect(() => {
-        if (error) {
-            setLoading(false);
-            console.error(error);
-        }
-    }, [error]);
+  useEffect(() => {
+    if (data) {
+      setLoading(false);
+      setFiles(data.docs);
+    }
+  }, [data]);
 
-    const handleFileUpload = async (file) => {
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            const response = await axios.post('https://api-endpoint.com/upload', formData);
-            console.log(response.data);
-        } catch (error) {
-            setError(error);
-        }
-    };
+  useEffect(() => {
+    // Getin an access token for Spotify API
+    axios.post('https://accounts.spotify.com/api/token', {
+      grant_type: 'client_credentials',
+      client_id: 'YOUR_SPOTIFY_CLIENT_ID',
+      client_secret: 'YOUR_SPOTIFY_CLIENT_SECRET',
+    })
+    .then(response => {
+      setAccessToken(response.data.access_token);
+    })
+    .catch(error => {
+      console.error(error);
+    });
+  }, []);
 
-    return (
+  useEffect(() => {
+    // Get The Weeknd's artist data from Spotify API
+    if (accessToken) {
+      axios.get(`https://api.spotify.com/v1/artists/theweeknd`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then(response => {
+        setArtistData(response.data);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+    }
+  }, [accessToken]);
+
+  return (
+    <div>
+      <button onClick={handleOpenPicker}>Open Google Drive Picker</button>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
         <div>
-            <button onClick={handleOpenPicker}>Picky here!</button>
-            {loading ? (
-                <p>Loading...</p>
-            ) : (
-                <div>
-                    {files.map((file) => (
-                        <p key={file.id}>{file.name}</p>
-                    ))}
-                    <button onClick={() => handleFileUpload(files[0])}>Upload File</button>
-                </div>
-            )}
-            {error ? (
-                <p style={{ color: 'red' }}>{error.message}</p>
-            ) : null}
+          {files.map((file) => (
+            <p key={file.id}>{file.name}</p>
+          ))}
         </div>
-    );
+      )}
+      <h1>The Weeknd's Stats</h1>
+      <p>Name: {artistData.name}</p>
+      <p>Popularity: {artistData.popularity}</p>
+      <p>Followers: {artistData.followers.total}</p>
+    </div>
+  );
 }
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>
-);
