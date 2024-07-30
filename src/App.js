@@ -8,13 +8,20 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [spotifyData, setSpotifyData] = useState([]);
-  const artistIds = ['1Xyo4u8uXC1ZmMpatF05PJ', '3m49WVMU4zCkaVEKb8kFW7']; // Add more artist IDs here [weekend, ilayraja]
+  const artistIds = ['1Xyo4u8uXC1ZmMpatF05PJ', 
+    '246dkjvS1zLTtiykXe5h60',
+    '6Ip8FS7vWT1uKkJSweANQK',
+    '5H4yInM5zmHqpKIoMNAx4r',
+    '0Y5tJX1MQlPlqiwlOH1tJY',
+    '3qiHUAX7zY4Qnjx8TNUzVx',
+    '2YZyLoL8N0Wb9xBt1NhZWg'
+  ]; // Add more artist IDs here
 
   const handleOpenPicker = () => {
     setLoading(true);
     openPicker({
       clientId: "648055946887-4er5sea1ghchnroe19sf761l6dtmme4i.apps.googleusercontent.com",
-      developerKey: "", //MAKE SURE TO DELETE BEFORE COMMITTING
+      developerKey: "",
       viewId: "DOCS",
       showUploadView: true,
       showUploadFolders: true,
@@ -45,7 +52,7 @@ function App() {
         const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', null, {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Basic ' + btoa(':') //clientid:clientsecret
+            'Authorization': 'Basic ' + btoa(':')
           },
           params: {
             grant_type: 'client_credentials'
@@ -119,13 +126,19 @@ function App() {
               <p>Followers: {artist.followers.total}</p>
               <p>Popularity: {artist.popularity}</p>
               <p>Genres: {artist.genres.join(', ')}</p>
-              {artist.topTrack && (
-                <div>
-                  <p>Top Track: {artist.topTrack.name}</p>
-                  <button onClick={() => window.open(artist.topTrack.preview_url, '_blank')}>
-                    Listen to Top Track
-                  </button>
-                </div>
+              {artist.topTrack ? (
+                artist.topTrack.preview_url ? (
+                  <div>
+                    <p>Most Listened Track: {artist.topTrack.name}</p>
+                    <button onClick={() => window.open(artist.topTrack.preview_url, '_blank')}>
+                      Listen to Most Listened Track
+                    </button>
+                  </div>
+                ) : (
+                  <p>Top track preview not available</p>
+                )
+              ) : (
+                <p>No top track available</p>
               )}
             </div>
           ))
