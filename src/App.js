@@ -7,7 +7,7 @@ function App() {
   const handleOpenPicker = () => {
     openPicker({
       clientId: "648055946887-4er5sea1ghchnroe19sf761l6dtmme4i.apps.googleusercontent.com",
-      developerKey: "AIzaSyD26iRiz7BCSLbPqlKCqTg4njaKFIV1zrw",
+      developerKey: "",
       viewId: "DOCS",
       showUploadView: true,
       showUploadFolder: true,
