@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import useDrivePicker from 'react-google-drive-picker';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from './firebase';
 
 function App() {
   const [openPicker, data, authResponse] = useDrivePicker();
@@ -8,20 +10,24 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [spotifyData, setSpotifyData] = useState([]);
-  const artistIds = ['1Xyo4u8uXC1ZmMpatF05PJ', 
+  const [input, setInput] = useState('');
+  const [inputLoading, setInputLoading] = useState(false);
+  const [inputError, setInputError] = useState(null);
+  const artistIds = [
+    '1Xyo4u8uXC1ZmMpatF05PJ', 
     '246dkjvS1zLTtiykXe5h60',
     '6Ip8FS7vWT1uKkJSweANQK',
     '5H4yInM5zmHqpKIoMNAx4r',
     '0Y5tJX1MQlPlqiwlOH1tJY',
     '3qiHUAX7zY4Qnjx8TNUzVx',
     '2YZyLoL8N0Wb9xBt1NhZWg'
-  ]; // Add more artist IDs here
+  ];
 
   const handleOpenPicker = () => {
     setLoading(true);
     openPicker({
       clientId: "648055946887-4er5sea1ghchnroe19sf761l6dtmme4i.apps.googleusercontent.com",
-      developerKey: "",
+      developerKey: "AIzaSyCciSnW0Ap8k_Mxz3kLXC-EQ_d5adr415I",
       viewId: "DOCS",
       showUploadView: true,
       showUploadFolders: true,
@@ -52,7 +58,7 @@ function App() {
         const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', null, {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Basic ' + btoa(':')
+            'Authorization': 'Basic ' + btoa('3ffa028c03264558b76235ada2d307af:54d530cb2c574a41a0e8c79dbf6edc3e')
           },
           params: {
             grant_type: 'client_credentials'
@@ -101,6 +107,23 @@ function App() {
     fetchSpotifyData();
   }, []);
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setInputLoading(true);
+
+    try {
+      await addDoc(collection(db, 'userInputs'), {
+        input,
+        timestamp: new Date(),
+      });
+      setInput('');
+      setInputLoading(false);
+    } catch (err) {
+      setInputError(err);
+      setInputLoading(false);
+    }
+  };
+
   return (
     <div>
       <button onClick={handleOpenPicker}>Open Google Drive Picker</button>
@@ -146,6 +169,19 @@ function App() {
           error && <p>Error fetching Spotify data: {error.message}</p>
         )}
       </div>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Enter something..."
+          required
+        />
+        <button type="submit" disabled={inputLoading}>
+          {inputLoading ? 'Submitting...' : 'Submit'}
+        </button>
+      </form>
+      {inputError && <p>Error: {inputError.message}</p>}
     </div>
   );
 }
