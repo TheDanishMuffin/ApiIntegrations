@@ -139,9 +139,29 @@ function Login({ onLogin }) {
       {isLoading && <p>Loading...</p>}
       <p style={{ marginTop: '10px' }}>
         {isRegister
-          ? "Already have an account? Switch to login please."
+          ? "Already have an account? Switch to login."
           : "Don't have an account? Register now."}
       </p>
+      <div className="password-rules">
+        <h3>Password Rules</h3>
+        <ul>
+          <li>It Must be at least 6 characters long</li>
+          <li>It Must contain at least one uppercase letter</li>
+          <li>It Must contain at least one number</li>
+          <li>It Must contain at least one special character</li>
+        </ul>
+      </div>
+      <div className="tooltip-container">
+        <span className="tooltip">Hover over me!!!
+          <span className="tooltip-text">Tooltip text goes here</span>
+        </span>
+      </div>
+      <div className="email-validation">
+        {!isValidEmail && email && <p style={{ color: 'red' }}>Please enter a valid email address.</p>}
+      </div>
+      <div className="password-validation">
+        {!isValidPassword && password && <p style={{ color: 'red' }}>Password must be at least 6 characters long.</p>}
+      </div>
     </div>
   );
 }
