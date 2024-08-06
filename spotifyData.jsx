@@ -203,9 +203,22 @@
           </div>
         )}
 
-      </div>
-    ))
-  ) : (
-    error && <p style={{ color: 'red' }}>Error fetching Spotify data: {error.message}</p>
-  )}
-</div>
+        {artist.relatedAlbums && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Related Albums:</h3>
+            {artist.relatedAlbums.length > 0 ? (
+              <ul style={{ padding: '0', listStyleType: 'none' }}>
+                {artist.relatedAlbums.map((album) => (
+                  <li key={album.id} style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <img 
+                        src={album.coverUrl} 
+                        alt={album.name} 
+                        style={{ 
+                          width: '50px', 
+                          height: '50px', 
+                          borderRadius: '5px', 
+                          marginRight: '10px' 
+                        }} 
+                      />
+                      <
