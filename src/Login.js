@@ -11,6 +11,8 @@ function Login({ onLogin }) {
   const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [isValidEmail, setIsValidEmail] = useState(true);
   const [isValidPassword, setIsValidPassword] = useState(true);
+  const [passwordStrength, setPasswordStrength] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (email) {
@@ -21,6 +23,13 @@ function Login({ onLogin }) {
   useEffect(() => {
     if (password) {
       setIsValidPassword(password.length >= 6);
+      if (password.length < 6) {
+        setPasswordStrength('Weak');
+      } else if (password.length < 10) {
+        setPasswordStrength('Moderate');
+      } else {
+        setPasswordStrength('Strong');
+      }
     }
   }, [password]);
 
@@ -68,14 +77,20 @@ function Login({ onLogin }) {
         style={{ borderColor: isValidEmail ? '' : 'red' }}
       />
       {!isPasswordReset && (
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={isLoading}
-          style={{ borderColor: isValidPassword ? '' : 'red' }}
-        />
+        <div>
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+            style={{ borderColor: isValidPassword ? '' : 'red' }}
+          />
+          <button onClick={() => setShowPassword(!showPassword)}>
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+          <p>Password strength: {passwordStrength}</p>
+        </div>
       )}
       {!isPasswordReset ? (
         <button onClick={handleLogin} disabled={isLoading}>
