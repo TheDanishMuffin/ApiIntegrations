@@ -155,6 +155,54 @@
           </div>
         )}
 
+        {artist.userReviews && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>User Reviews:</h3>
+            {artist.userReviews.length > 0 ? (
+              <ul style={{ padding: '0', listStyleType: 'none' }}>
+                {artist.userReviews.map((review, index) => (
+                  <li key={index} style={{ marginBottom: '15px', padding: '10px', border: '1px solid #ddd', borderRadius: '5px' }}>
+                    <p><strong>{review.username}</strong> ({new Date(review.date).toLocaleDateString()})</p>
+                    <p>{review.comment}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No user reviews available</p>
+            )}
+          </div>
+        )}
+
+        {artist.relatedPlaylists && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Related Playlists:</h3>
+            {artist.relatedPlaylists.length > 0 ? (
+              <ul style={{ padding: '0', listStyleType: 'none' }}>
+                {artist.relatedPlaylists.map((playlist) => (
+                  <li key={playlist.id} style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <img 
+                        src={playlist.images[0]?.url} 
+                        alt={playlist.name} 
+                        style={{ 
+                          width: '50px', 
+                          height: '50px', 
+                          borderRadius: '5px', 
+                          marginRight: '10px' 
+                        }} 
+                      />
+                      <p><strong>{playlist.name}</strong></p>
+                      <a href={playlist.spotifyUrl} target="_blank" style={{ marginLeft: '10px', color: '#1db954' }}>Listen</a>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No related playlists available</p>
+            )}
+          </div>
+        )}
+
       </div>
     ))
   ) : (
