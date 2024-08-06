@@ -105,6 +105,56 @@
             </button>
           </div>
         )}
+
+        {artist.tourDates && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Upcoming Tour Dates:</h3>
+            {artist.tourDates.length > 0 ? (
+              <ul style={{ padding: '0', listStyleType: 'none' }}>
+                {artist.tourDates.map((date, index) => (
+                  <li key={index} style={{ marginBottom: '10px' }}>
+                    <p><strong>Venue:</strong> {date.venue}</p>
+                    <p><strong>Date:</strong> {new Date(date.date).toLocaleDateString()}</p>
+                    <p><strong>Location:</strong> {date.location}</p>
+                    <a href={date.ticketUrl} target="_blank" style={{ color: '#1db954' }}>Buy Tickets</a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No upcoming tour dates available</p>
+            )}
+          </div>
+        )}
+
+        {artist.similarArtists && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Similar Artists:</h3>
+            {artist.similarArtists.length > 0 ? (
+              <ul style={{ padding: '0', listStyleType: 'none' }}>
+                {artist.similarArtists.map((similarArtist) => (
+                  <li key={similarArtist.id} style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <img 
+                        src={similarArtist.images[0]?.url} 
+                        alt={similarArtist.name} 
+                        style={{ 
+                          width: '50px', 
+                          height: '50px', 
+                          borderRadius: '50%', 
+                          marginRight: '10px' 
+                        }} 
+                      />
+                      <p><strong>{similarArtist.name}</strong></p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No similar artists found</p>
+            )}
+          </div>
+        )}
+
       </div>
     ))
   ) : (
