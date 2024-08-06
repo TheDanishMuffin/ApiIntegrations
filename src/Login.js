@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswor
 function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +14,7 @@ function Login({ onLogin }) {
   const [isValidPassword, setIsValidPassword] = useState(true);
   const [passwordStrength, setPasswordStrength] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordMatch, setPasswordMatch] = useState(true);
 
   useEffect(() => {
     if (email) {
@@ -33,9 +35,15 @@ function Login({ onLogin }) {
     }
   }, [password]);
 
+  useEffect(() => {
+    if (isRegister && confirmPassword) {
+      setPasswordMatch(password === confirmPassword);
+    }
+  }, [password, confirmPassword, isRegister]);
+
   const handleLogin = async () => {
-    if (!isValidEmail || !isValidPassword) {
-      setError('Please enter valid email and password.');
+    if (!isValidEmail || !isValidPassword || (isRegister && !passwordMatch)) {
+      setError('Please ensure all fields are valid.');
       return;
     }
     setIsLoading(true);
@@ -75,6 +83,7 @@ function Login({ onLogin }) {
         onChange={(e) => setEmail(e.target.value)}
         disabled={isLoading}
         style={{ borderColor: isValidEmail ? '' : 'red' }}
+        title="Enter your email address"
       />
       {!isPasswordReset && (
         <div>
@@ -85,11 +94,24 @@ function Login({ onLogin }) {
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
             style={{ borderColor: isValidPassword ? '' : 'red' }}
+            title="Enter your password (min 6 characters)"
           />
+          {isRegister && (
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={isLoading}
+              style={{ borderColor: passwordMatch ? '' : 'red' }}
+              title="Confirm your password"
+            />
+          )}
           <button onClick={() => setShowPassword(!showPassword)}>
             {showPassword ? 'Hide' : 'Show'}
           </button>
           <p>Password strength: {passwordStrength}</p>
+          {!passwordMatch && isRegister && <p style={{ color: 'red' }}>Passwords do not match</p>}
         </div>
       )}
       {!isPasswordReset ? (
@@ -115,6 +137,11 @@ function Login({ onLogin }) {
         </button>
       )}
       {isLoading && <p>Loading...</p>}
+      <p style={{ marginTop: '10px' }}>
+        {isRegister
+          ? "Already have an account? Switch to login please."
+          : "Don't have an account? Register now."}
+      </p>
     </div>
   );
 }
