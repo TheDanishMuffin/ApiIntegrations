@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth } from './firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
@@ -9,8 +9,26 @@ function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [isValidEmail, setIsValidEmail] = useState(true);
+  const [isValidPassword, setIsValidPassword] = useState(true);
+
+  useEffect(() => {
+    if (email) {
+      setIsValidEmail(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+    }
+  }, [email]);
+
+  useEffect(() => {
+    if (password) {
+      setIsValidPassword(password.length >= 6);
+    }
+  }, [password]);
 
   const handleLogin = async () => {
+    if (!isValidEmail || !isValidPassword) {
+      setError('Please enter valid email and password.');
+      return;
+    }
     setIsLoading(true);
     try {
       const userCredential = isRegister
@@ -25,6 +43,10 @@ function Login({ onLogin }) {
   };
 
   const handlePasswordReset = async () => {
+    if (!isValidEmail) {
+      setError('Please enter a valid email.');
+      return;
+    }
     try {
       await sendPasswordResetEmail(auth, email);
       setError('Password reset email sent.');
@@ -43,6 +65,7 @@ function Login({ onLogin }) {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         disabled={isLoading}
+        style={{ borderColor: isValidEmail ? '' : 'red' }}
       />
       {!isPasswordReset && (
         <input
@@ -51,6 +74,7 @@ function Login({ onLogin }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={isLoading}
+          style={{ borderColor: isValidPassword ? '' : 'red' }}
         />
       )}
       {!isPasswordReset ? (
@@ -75,6 +99,7 @@ function Login({ onLogin }) {
           Back to Login
         </button>
       )}
+      {isLoading && <p>Loading...</p>}
     </div>
   );
 }
