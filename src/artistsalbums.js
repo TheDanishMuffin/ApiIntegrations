@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -8,13 +7,14 @@ const ArtistAlbums = ({ artistId }) => {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
         const response = await axios.get(`https://api.spotify.com/v1/artists/${artistId}/albums`, {
           headers: {
-            Authorization: `Bearer ${process.env.}`
+            Authorization: `Bearer ${process.env.N}`
           }
         });
         setAlbums(response.data.items);
@@ -34,6 +34,14 @@ const ArtistAlbums = ({ artistId }) => {
 
   const handleSortChange = (e) => {
     setSortOrder(e.target.value);
+  };
+
+  const addFavorite = (album) => {
+    setFavorites([...favorites, album]);
+  };
+
+  const removeFavorite = (albumId) => {
+    setFavorites(favorites.filter(album => album.id !== albumId));
   };
 
   const filteredAlbums = albums.filter(album => 
@@ -82,6 +90,26 @@ const ArtistAlbums = ({ artistId }) => {
             <a href={album.external_urls.spotify} target="_blank" rel="noopener noreferrer">
               Open in Spotify
             </a>
+            <button onClick={() => addFavorite(album)}>Add to Favorites</button>
+            <button onClick={() => removeFavorite(album.id)}>Remove from Favorites</button>
+          </div>
+        ))}
+      </div>
+      <h2>Favorites</h2>
+      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+        {favorites.map(album => (
+          <div key={album.id} style={{ margin: '10px' }}>
+            <img 
+              src={album.images[0]?.url || 'https://via.placeholder.com/150'} 
+              alt={album.name} 
+              style={{ width: '150px', height: '150px' }}
+            />
+            <p>{album.name}</p>
+            <p>Release Date: {album.release_date}</p>
+            <a href={album.external_urls.spotify} target="_blank" rel="noopener noreferrer">
+              Open in Spotify
+            </a>
+            <button onClick={() => removeFavorite(album.id)}>Remove from Favorites</button>
           </div>
         ))}
       </div>
