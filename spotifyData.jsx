@@ -41,7 +41,7 @@
         <p><strong>Popularity:</strong> {artist.popularity}</p>
         <p><strong>Genres:</strong> {artist.genres.join(', ')}</p>
         
-        {artist.topTrack ? (
+        {artist.topTrack && (
           artist.topTrack.preview_url ? (
             <div>
               <p><strong>Most Listened Track:</strong> {artist.topTrack.name}</p>
@@ -62,8 +62,6 @@
           ) : (
             <p>Top track preview not available</p>
           )
-        ) : (
-          <p>No top track available</p>
         )}
 
         {artist.socialMedia && (
@@ -221,7 +219,7 @@
                           marginRight: '10px' 
                         }} 
                       />
-                      <                      <p><strong>{album.name}</strong></p>
+                      <p><strong>{album.name}</strong></p>
                       <a href={album.spotifyUrl} target="_blank" style={{ marginLeft: '10px', color: '#1db954' }}>Listen</a>
                     </div>
                   </li>
@@ -317,6 +315,27 @@
             ) : (
               <p>No merchandise available</p>
             )}
+          </div>
+        )}
+
+        {artist.biography && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Biography:</h3>
+            <p>{artist.biography}</p>
+          </div>
+        )}
+
+        {artist.achievements && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Achievements:</h3>
+            <ul style={{ padding: '0', listStyleType: 'none' }}>
+              {artist.achievements.map((achievement, index) => (
+                <li key={index} style={{ marginBottom: '10px' }}>
+                  <p><strong>{achievement.title}</strong></p>
+                  <p>{achievement.description}</p>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
