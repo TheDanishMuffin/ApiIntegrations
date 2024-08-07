@@ -221,4 +221,108 @@
                           marginRight: '10px' 
                         }} 
                       />
-                      <
+                      <                      <p><strong>{album.name}</strong></p>
+                      <a href={album.spotifyUrl} target="_blank" style={{ marginLeft: '10px', color: '#1db954' }}>Listen</a>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No related albums available</p>
+            )}
+          </div>
+        )}
+
+        {artist.musicVideos && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Music Videos:</h3>
+            {artist.musicVideos.length > 0 ? (
+              <ul style={{ padding: '0', listStyleType: 'none' }}>
+                {artist.musicVideos.map((video, index) => (
+                  <li key={index} style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <img 
+                        src={video.thumbnailUrl} 
+                        alt={video.title} 
+                        style={{ 
+                          width: '50px', 
+                          height: '50px', 
+                          borderRadius: '5px', 
+                          marginRight: '10px' 
+                        }} 
+                      />
+                      <p><strong>{video.title}</strong></p>
+                      <a href={video.youtubeUrl} target="_blank" style={{ marginLeft: '10px', color: '#FF0000' }}>Watch</a>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No music videos available</p>
+            )}
+          </div>
+        )}
+
+        {artist.fanArt && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Fan Art:</h3>
+            {artist.fanArt.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                {artist.fanArt.map((art, index) => (
+                  <div key={index} style={{ width: '100px', height: '100px' }}>
+                    <img 
+                      src={art.url} 
+                      alt={`Fan art ${index + 1}`} 
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        borderRadius: '10px', 
+                        objectFit: 'cover', 
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.1)' 
+                      }} 
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>No fan art available</p>
+            )}
+          </div>
+        )}
+
+        {artist.merchandise && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>Merchandise:</h3>
+            {artist.merchandise.length > 0 ? (
+              <ul style={{ padding: '0', listStyleType: 'none' }}>
+                {artist.merchandise.map((item, index) => (
+                  <li key={index} style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.name} 
+                        style={{ 
+                          width: '50px', 
+                          height: '50px', 
+                          borderRadius: '5px', 
+                          marginRight: '10px' 
+                        }} 
+                      />
+                      <p><strong>{item.name}</strong></p>
+                      <a href={item.shopUrl} target="_blank" style={{ marginLeft: '10px', color: '#000' }}>Buy Now</a>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No merchandise available</p>
+            )}
+          </div>
+        )}
+
+      </div>
+    ))
+  ) : (
+    <p>No artists found</p>
+  )}
+</div>
