@@ -7,13 +7,14 @@ const ArtistAlbums = ({ artistId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
         const response = await axios.get(`https://api.spotify.com/v1/artists/${artistId}/albums`, {
           headers: {
-            Authorization: `Bearer ${process.env.PLUG ACEESS TOCEN HERE}`
+            Authorization: `Bearer ${process.env.}`
           }
         });
         setAlbums(response.data.items);
@@ -31,9 +32,21 @@ const ArtistAlbums = ({ artistId }) => {
     setFilter(e.target.value);
   };
 
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
+  };
+
   const filteredAlbums = albums.filter(album => 
     album.name.toLowerCase().includes(filter.toLowerCase())
   );
+
+  const sortedAlbums = [...filteredAlbums].sort((a, b) => {
+    if (sortOrder === 'asc') {
+      return new Date(a.release_date) - new Date(b.release_date);
+    } else {
+      return new Date(b.release_date) - new Date(a.release_date);
+    }
+  });
 
   if (loading) {
     return <div>Loading...</div>;
@@ -52,8 +65,12 @@ const ArtistAlbums = ({ artistId }) => {
         value={filter} 
         onChange={handleFilterChange} 
       />
+      <select value={sortOrder} onChange={handleSortChange}>
+        <option value="desc">Sort by Release Date (Descending)</option>
+        <option value="asc">Sort by Release Date (Ascending)</option>
+      </select>
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {filteredAlbums.map(album => (
+        {sortedAlbums.map(album => (
           <div key={album.id} style={{ margin: '10px' }}>
             <img 
               src={album.images[0]?.url || 'https://via.placeholder.com/150'} 
