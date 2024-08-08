@@ -228,6 +228,37 @@ const ArtistAlbums = ({ artistId }) => {
                   Open in Spotify
                 </a>
                 <button onClick={() => removeFromPlaylist(playlistName, album.id)}>Remove from {playlistName}</button>
+{Object.keys(playlists).map(playlistName => (
+  <div key={playlistName}>
+    <h3>{playlistName}</h3>
+    <button onClick={() => generateShareableLink(playlistName)}>Generate Shareable Link</button>
+    {sharedLinks[playlistName] && (
+      <div>
+        <p>Shareable Link: <a href={sharedLinks[playlistName]} target="_blank" rel="noopener noreferrer">{sharedLinks[playlistName]}</a></p>
+        <button onClick={() => copyToClipboard(sharedLinks[playlistName])}>Copy to Clipboard</button>
+        <button onClick={() => shareOnSocialMedia('twitter', sharedLinks[playlistName])}>Share on Twitter</button>
+        <button onClick={() => shareOnSocialMedia('facebook', sharedLinks[playlistName])}>Share on Facebook</button>
+      </div>
+    )}
+    <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+      {playlists[playlistName].map(album => (
+        <div key={album.id} style={{ margin: '10px' }}>
+          <img 
+            src={album.images[0]?.url || ''} 
+            alt={album.name} 
+            style={{ width: '150px', height: '150px' }}
+          />
+          <p>{album.name}</p>
+          <p>Release Date: {album.release_date}</p>
+          <a href={album.external_urls.spotify} target="_blank" rel="noopener noreferrer">
+            Open in Spotify
+          </a>
+          <button onClick={() => removeFromPlaylist(playlistName, album.id)}>Remove from {playlistName}</button>
+        </div>
+      ))}
+    </div>
+  </div>
+))}
               </div>
             ))}
           </div>
