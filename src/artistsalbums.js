@@ -10,6 +10,8 @@ const ArtistAlbums = ({ artistId }) => {
   const [favorites, setFavorites] = useState([]);
   const [tags, setTags] = useState({});
   const [tagFilter, setTagFilter] = useState('');
+  const [playlists, setPlaylists] = useState({});
+  const [newPlaylistName, setNewPlaylistName] = useState('');
 
   useEffect(() => {
     const fetchAlbums = async () => {
@@ -64,6 +66,30 @@ const ArtistAlbums = ({ artistId }) => {
     setTagFilter(e.target.value);
   };
 
+  const createPlaylist = () => {
+    if (newPlaylistName) {
+      setPlaylists({
+        ...playlists,
+        [newPlaylistName]: []
+      });
+      setNewPlaylistName('');
+    }
+  };
+
+  const addToPlaylist = (playlistName, album) => {
+    setPlaylists({
+      ...playlists,
+      [playlistName]: [...playlists[playlistName], album]
+    });
+  };
+
+  const removeFromPlaylist = (playlistName, albumId) => {
+    setPlaylists({
+      ...playlists,
+      [playlistName]: playlists[playlistName].filter(album => album.id !== albumId)
+    });
+  };
+
   const filteredAlbums = albums.filter(album => 
     album.name.toLowerCase().includes(filter.toLowerCase()) &&
     (!tagFilter || (tags[album.id] && tags[album.id].includes(tagFilter.toLowerCase())))
@@ -104,6 +130,15 @@ const ArtistAlbums = ({ artistId }) => {
         value={tagFilter} 
         onChange={handleTagFilterChange} 
       />
+      <div>
+        <input 
+          type="text" 
+          placeholder="New playlist name..." 
+          value={newPlaylistName} 
+          onChange={(e) => setNewPlaylistName(e.target.value)} 
+        />
+        <button onClick={createPlaylist}>Create Playlist</button>
+      </div>
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {sortedAlbums.map(album => (
           <div key={album.id} style={{ margin: '10px' }}>
@@ -138,6 +173,13 @@ const ArtistAlbums = ({ artistId }) => {
                 ))}
               </div>
             </div>
+            <div>
+              {Object.keys(playlists).map(playlistName => (
+                <div key={playlistName}>
+                  <button onClick={() => addToPlaylist(playlistName, album)}>Add to {playlistName}</button>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
@@ -168,6 +210,29 @@ const ArtistAlbums = ({ artistId }) => {
           </div>
         ))}
       </div>
+      <h2>Playlists</h2>
+      {Object.keys(playlists).map(playlistName => (
+        <div key={playlistName}>
+          <h3>{playlistName}</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {playlists[playlistName].map(album => (
+              <div key={album.id} style={{ margin: '10px' }}>
+                <img 
+                  src={album.images[0]?.url || ''} 
+                  alt={album.name} 
+                  style={{ width: '150px', height: '150px' }}
+                />
+                <p>{album.name}</p>
+                <p>Release Date: {album.release_date}</p>
+                <a href={album.external_urls.spotify} target="_blank" rel="noopener noreferrer">
+                  Open in Spotify
+                </a>
+                <button onClick={() => removeFromPlaylist(playlistName, album.id)}>Remove from {playlistName}</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
