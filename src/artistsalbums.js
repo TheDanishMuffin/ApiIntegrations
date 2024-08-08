@@ -8,6 +8,8 @@ const ArtistAlbums = ({ artistId }) => {
   const [filter, setFilter] = useState('');
   const [sortOrder, setSortOrder] = useState('desc');
   const [favorites, setFavorites] = useState([]);
+  const [tags, setTags] = useState({});
+  const [tagFilter, setTagFilter] = useState('');
 
   useEffect(() => {
     const fetchAlbums = async () => {
@@ -44,8 +46,27 @@ const ArtistAlbums = ({ artistId }) => {
     setFavorites(favorites.filter(album => album.id !== albumId));
   };
 
+  const addTag = (albumId, tag) => {
+    setTags(prevTags => ({
+      ...prevTags,
+      [albumId]: [...(prevTags[albumId] || []), tag]
+    }));
+  };
+
+  const removeTag = (albumId, tag) => {
+    setTags(prevTags => ({
+      ...prevTags,
+      [albumId]: prevTags[albumId].filter(t => t !== tag)
+    }));
+  };
+
+  const handleTagFilterChange = (e) => {
+    setTagFilter(e.target.value);
+  };
+
   const filteredAlbums = albums.filter(album => 
-    album.name.toLowerCase().includes(filter.toLowerCase())
+    album.name.toLowerCase().includes(filter.toLowerCase()) &&
+    (!tagFilter || (tags[album.id] && tags[album.id].includes(tagFilter.toLowerCase())))
   );
 
   const sortedAlbums = [...filteredAlbums].sort((a, b) => {
@@ -77,11 +98,17 @@ const ArtistAlbums = ({ artistId }) => {
         <option value="desc">Sort by Release Date (Descending)</option>
         <option value="asc">Sort by Release Date (Ascending)</option>
       </select>
+      <input 
+        type="text" 
+        placeholder="Filter by tag..." 
+        value={tagFilter} 
+        onChange={handleTagFilterChange} 
+      />
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {sortedAlbums.map(album => (
           <div key={album.id} style={{ margin: '10px' }}>
             <img 
-              src={album.images[0]?.url || 'https://via.placeholder.com/150'} 
+              src={album.images[0]?.url || ''} 
               alt={album.name} 
               style={{ width: '150px', height: '150px' }}
             />
@@ -92,6 +119,25 @@ const ArtistAlbums = ({ artistId }) => {
             </a>
             <button onClick={() => addFavorite(album)}>Add to Favorites</button>
             <button onClick={() => removeFavorite(album.id)}>Remove from Favorites</button>
+            <div>
+              <input 
+                type="text" 
+                placeholder="Add tag..." 
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.target.value) {
+                    addTag(album.id, e.target.value.toLowerCase());
+                    e.target.value = '';
+                  }
+                }} 
+              />
+              <div>
+                {tags[album.id]?.map(tag => (
+                  <span key={tag} style={{ marginRight: '5px' }}>
+                    {tag} <button onClick={() => removeTag(album.id, tag)}>x</button>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -100,7 +146,7 @@ const ArtistAlbums = ({ artistId }) => {
         {favorites.map(album => (
           <div key={album.id} style={{ margin: '10px' }}>
             <img 
-              src={album.images[0]?.url || 'https://via.placeholder.com/150'} 
+              src={album.images[0]?.url || ''} 
               alt={album.name} 
               style={{ width: '150px', height: '150px' }}
             />
@@ -110,6 +156,15 @@ const ArtistAlbums = ({ artistId }) => {
               Open in Spotify
             </a>
             <button onClick={() => removeFavorite(album.id)}>Remove from Favorites</button>
+            <div>
+              <div>
+                {tags[album.id]?.map(tag => (
+                  <span key={tag} style={{ marginRight: '5px' }}>
+                    {tag} <button onClick={() => removeTag(album.id, tag)}>x</button>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         ))}
       </div>
