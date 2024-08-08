@@ -12,6 +12,7 @@ const ArtistAlbums = ({ artistId }) => {
   const [tagFilter, setTagFilter] = useState('');
   const [playlists, setPlaylists] = useState({});
   const [newPlaylistName, setNewPlaylistName] = useState('');
+  const [sharedLinks, setSharedLinks] = useState({});
 
   useEffect(() => {
     const fetchAlbums = async () => {
@@ -88,6 +89,35 @@ const ArtistAlbums = ({ artistId }) => {
       ...playlists,
       [playlistName]: playlists[playlistName].filter(album => album.id !== albumId)
     });
+  };
+
+  const generateShareableLink = (playlistName) => {
+    const baseURL = 'https://yourapp.com/playlist';
+    const link = `${baseURL}/${encodeURIComponent(playlistName)}`;
+    setSharedLinks({
+      ...sharedLinks,
+      [playlistName]: link
+    });
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('Link copied to clipboard!');
+  };
+
+  const shareOnSocialMedia = (platform, link) => {
+    let url = '';
+    switch (platform) {
+      case 'twitter':
+        url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(link)}`;
+        break;
+      case 'facebook':
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
+        break;
+      default:
+        break;
+    }
+    window.open(url, '_blank');
   };
 
   const filteredAlbums = albums.filter(album => 
@@ -214,6 +244,15 @@ const ArtistAlbums = ({ artistId }) => {
       {Object.keys(playlists).map(playlistName => (
         <div key={playlistName}>
           <h3>{playlistName}</h3>
+          <button onClick={() => generateShareableLink(playlistName)}>Generate Shareable Link</button>
+          {sharedLinks[playlistName] && (
+            <div>
+              <p>Shareable Link: <a href={sharedLinks[playlistName]} target="_blank" rel="noopener noreferrer">{sharedLinks[playlistName]}</a></p>
+              <button onClick={() => copyToClipboard(sharedLinks[playlistName])}>Copy to Clipboard</button>
+              <button onClick={() => shareOnSocialMedia('twitter', sharedLinks[playlistName])}>Share on Twitter</button>
+              <button onClick={() => shareOnSocialMedia('facebook', sharedLinks[playlistName])}>Share on Facebook</button>
+            </div>
+          )}
           <div style={{ display: 'flex', flexWrap: 'wrap' }}>
             {playlists[playlistName].map(album => (
               <div key={album.id} style={{ margin: '10px' }}>
@@ -228,37 +267,6 @@ const ArtistAlbums = ({ artistId }) => {
                   Open in Spotify
                 </a>
                 <button onClick={() => removeFromPlaylist(playlistName, album.id)}>Remove from {playlistName}</button>
-{Object.keys(playlists).map(playlistName => (
-  <div key={playlistName}>
-    <h3>{playlistName}</h3>
-    <button onClick={() => generateShareableLink(playlistName)}>Generate Shareable Link</button>
-    {sharedLinks[playlistName] && (
-      <div>
-        <p>Shareable Link: <a href={sharedLinks[playlistName]} target="_blank" rel="noopener noreferrer">{sharedLinks[playlistName]}</a></p>
-        <button onClick={() => copyToClipboard(sharedLinks[playlistName])}>Copy to Clipboard</button>
-        <button onClick={() => shareOnSocialMedia('twitter', sharedLinks[playlistName])}>Share on Twitter</button>
-        <button onClick={() => shareOnSocialMedia('facebook', sharedLinks[playlistName])}>Share on Facebook</button>
-      </div>
-    )}
-    <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-      {playlists[playlistName].map(album => (
-        <div key={album.id} style={{ margin: '10px' }}>
-          <img 
-            src={album.images[0]?.url || ''} 
-            alt={album.name} 
-            style={{ width: '150px', height: '150px' }}
-          />
-          <p>{album.name}</p>
-          <p>Release Date: {album.release_date}</p>
-          <a href={album.external_urls.spotify} target="_blank" rel="noopener noreferrer">
-            Open in Spotify
-          </a>
-          <button onClick={() => removeFromPlaylist(playlistName, album.id)}>Remove from {playlistName}</button>
-        </div>
-      ))}
-    </div>
-  </div>
-))}
               </div>
             ))}
           </div>
