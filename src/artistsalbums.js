@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { db, auth } from './firebase'; 
+import { collection, addDoc, onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const ArtistAlbums = ({ artistId }) => {
   const [albums, setAlbums] = useState([]);
@@ -13,6 +15,8 @@ const ArtistAlbums = ({ artistId }) => {
   const [playlists, setPlaylists] = useState({});
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [sharedLinks, setSharedLinks] = useState({});
+  const [collaborativePlaylists, setCollaborativePlaylists] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const fetchAlbums = async () => {
@@ -32,6 +36,60 @@ const ArtistAlbums = ({ artistId }) => {
 
     fetchAlbums();
   }, [artistId]);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const createCollaborativePlaylist = async () => {
+    if (newPlaylistName) {
+      try {
+        const docRef = await addDoc(collection(db, "playlists"), {
+          name: newPlaylistName,
+          owner: currentUser.uid,
+          collaborators: [currentUser.uid],
+          albums: [],
+        });
+        setCollaborativePlaylists({
+          ...collaborativePlaylists,
+          [docRef.id]: {
+            name: newPlaylistName,
+            albums: [],
+            collaborators: [currentUser.uid],
+          }
+        });
+        setNewPlaylistName('');
+      } catch (e) {
+        console.error("Error adding document: ", e);
+      }
+    }
+  };
+
+  const addAlbumToCollaborativePlaylist = async (playlistId, album) => {
+    try {
+      const playlistRef = doc(db, "playlists", playlistId);
+      await updateDoc(playlistRef, {
+        albums: arrayUnion(album)
+      });
+    } catch (e) {
+      console.error("Error updating document: ", e);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "playlists"), (snapshot) => {
+      const updatedPlaylists = {};
+      snapshot.forEach(doc => {
+        updatedPlaylists[doc.id] = doc.data();
+      });
+      setCollaborativePlaylists(updatedPlaylists);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleFilterChange = (e) => {
     setFilter(e.target.value);
@@ -169,6 +227,15 @@ const ArtistAlbums = ({ artistId }) => {
         />
         <button onClick={createPlaylist}>Create Playlist</button>
       </div>
+      <div>
+        <input 
+          type="text" 
+          placeholder="New collaborative playlist name..." 
+          value={newPlaylistName} 
+          onChange={(e) => setNewPlaylistName(e.target.value)} 
+        />
+        <button onClick={createCollaborativePlaylist}>Create Collaborative Playlist</button>
+      </div>
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {sortedAlbums.map(album => (
           <div key={album.id} style={{ margin: '10px' }}>
@@ -210,68 +277,44 @@ const ArtistAlbums = ({ artistId }) => {
                 </div>
               ))}
             </div>
+            <div>
+              {Object.keys(collaborativePlaylists).map(playlistId => (
+                <div key={playlistId}>
+                  <h3>{collaborativePlaylists[playlistId].name}</h3>
+                  <button onClick={() => addAlbumToCollaborativePlaylist(playlistId, album)}>
+                    Add to {collaborativePlaylists[playlistId].name}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
-      <h2>Favorites</h2>
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {favorites.map(album => (
-          <div key={album.id} style={{ margin: '10px' }}>
-            <img 
-              src={album.images[0]?.url || ''} 
-              alt={album.name} 
-              style={{ width: '150px', height: '150px' }}
-            />
-            <p>{album.name}</p>
-            <p>Release Date: {album.release_date}</p>
-            <a href={album.external_urls.spotify} target="_blank" rel="noopener noreferrer">
-              Open in Spotify
-            </a>
-            <button onClick={() => removeFavorite(album.id)}>Remove from Favorites</button>
-            <div>
+      <div>
+        <h2>Your Playlists</h2>
+        {Object.keys(playlists).map(playlistName => (
+          <div key={playlistName}>
+            <h3>{playlistName}</h3>
+            <ul>
+              {playlists[playlistName].map(album => (
+                <li key={album.id}>
+                  {album.name}
+                  <button onClick={() => removeFromPlaylist(playlistName, album.id)}>Remove</button>
+                </li>
+              ))}
+            </ul>
+            <button onClick={() => generateShareableLink(playlistName)}>Generate Shareable Link here!</button>
+            {sharedLinks[playlistName] && (
               <div>
-                {tags[album.id]?.map(tag => (
-                  <span key={tag} style={{ marginRight: '5px' }}>
-                    {tag} <button onClick={() => removeTag(album.id, tag)}>x</button>
-                  </span>
-                ))}
+                <p>{sharedLinks[playlistName]}</p>
+                <button onClick={() => copyToClipboard(sharedLinks[playlistName])}>Copy Link</button>
+                <button onClick={() => shareOnSocialMedia('twitter', sharedLinks[playlistName])}>Share on Twitter</button>
+                <button onClick={() => shareOnSocialMedia('facebook', sharedLinks[playlistName])}>Share on Facebook</button>
               </div>
-            </div>
+            )}
           </div>
         ))}
       </div>
-      <h2>Playlists</h2>
-      {Object.keys(playlists).map(playlistName => (
-        <div key={playlistName}>
-          <h3>{playlistName}</h3>
-          <button onClick={() => generateShareableLink(playlistName)}>Generate Shareable Link</button>
-          {sharedLinks[playlistName] && (
-            <div>
-              <p>Shareable Link: <a href={sharedLinks[playlistName]} target="_blank" rel="noopener noreferrer">{sharedLinks[playlistName]}</a></p>
-              <button onClick={() => copyToClipboard(sharedLinks[playlistName])}>Copy to Clipboard</button>
-              <button onClick={() => shareOnSocialMedia('twitter', sharedLinks[playlistName])}>Share on Twitter</button>
-              <button onClick={() => shareOnSocialMedia('facebook', sharedLinks[playlistName])}>Share on Facebook</button>
-            </div>
-          )}
-          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-            {playlists[playlistName].map(album => (
-              <div key={album.id} style={{ margin: '10px' }}>
-                <img 
-                  src={album.images[0]?.url || ''} 
-                  alt={album.name} 
-                  style={{ width: '150px', height: '150px' }}
-                />
-                <p>{album.name}</p>
-                <p>Release Date: {album.release_date}</p>
-                <a href={album.external_urls.spotify} target="_blank" rel="noopener noreferrer">
-                  Open in Spotify
-                </a>
-                <button onClick={() => removeFromPlaylist(playlistName, album.id)}>Remove from {playlistName}</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
     </div>
   );
 };
