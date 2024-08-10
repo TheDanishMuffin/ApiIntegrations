@@ -5,11 +5,13 @@ import axios from 'axios';
 const ArtistDetails = ({ artistId }) => {
   const [artistData, setArtistData] = useState(null);
   const [relatedArtists, setRelatedArtists] = useState([]);
+  const [playlist, setPlaylist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [playlist, setPlaylist] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(null);
+  const [lyrics, setLyrics] = useState('');
+  const [musicVideoUrl, setMusicVideoUrl] = useState('');
 
   useEffect(() => {
     if (!artistId) return;
@@ -32,19 +34,34 @@ const ArtistDetails = ({ artistId }) => {
     fetchArtistDetails();
   }, [artistId]);
 
-  const playTrackPreview = (previewUrl) => {
+  const playTrackPreview = (previewUrl, trackId) => {
     if (isPlaying) {
       const audio = document.getElementById('audio-preview');
       audio.pause();
       setIsPlaying(false);
     }
-    
+
     if (previewUrl) {
       const audio = new Audio(previewUrl);
       audio.id = 'audio-preview';
       audio.play();
       setIsPlaying(true);
-      setCurrentTrack(previewUrl);
+      setCurrentTrack(trackId);
+
+      // Fetch lyrics and music video
+      fetchLyricsAndVideo(trackId);
+    }
+  };
+
+  const fetchLyricsAndVideo = async (trackId) => {
+    try {
+      const lyricsResponse = await axios.get(`/api/spotify/track/${trackId}/lyrics`);
+      setLyrics(lyricsResponse.data.lyrics);
+
+      const videoResponse = await axios.get(`/api/spotify/track/${trackId}/music-video`);
+      setMusicVideoUrl(videoResponse.data.videoUrl);
+    } catch (err) {
+      console.error('Error fetching lyrics or music video:', err);
     }
   };
 
@@ -59,9 +76,9 @@ const ArtistDetails = ({ artistId }) => {
   const savePlaylist = async () => {
     try {
       const response = await axios.post('/api/spotify/save-playlist', { tracks: playlist });
-      alert('Playlist saved successfully! Yay :)');
+      alert('Playlist saved successfully! :)');
     } catch (err) {
-      console.error('Error saving playlist bruh:', err);
+      console.error('Error saving playlist :( ', err);
     }
   };
 
@@ -80,13 +97,35 @@ const ArtistDetails = ({ artistId }) => {
             {artistData.topTracks.map((track) => (
               <li key={track.id}>
                 {track.name} 
-                <button onClick={() => playTrackPreview(track.preview_url)}>
-                  {isPlaying && currentTrack === track.preview_url ? 'Stop Preview' : 'Play Preview'}
+                <button onClick={() => playTrackPreview(track.preview_url, track.id)}>
+                  {isPlaying && currentTrack === track.id ? 'Stop Preview' : 'Play Preview'}
                 </button>
                 <button onClick={() => addToPlaylist(track)}>Add to Playlist</button>
               </li>
             ))}
           </ul>
+
+          {lyrics && (
+            <div className="lyrics-section">
+              <h3>Lyrics</h3>
+              <pre>{lyrics}</pre>
+            </div>
+          )}
+
+          {musicVideoUrl && (
+            <div className="music-video-section">
+              <h3>Music Video</h3>
+              <iframe
+                width="560"
+                height="315"
+                src={musicVideoUrl}
+                title="Music Video"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          )}
 
           <h3>Playlist</h3>
           <ul>
